@@ -1,0 +1,151 @@
+<html>
+<head>
+    <title>Uber Coding Challenge from Jason Qiu</title>
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap-theme.min.css">
+    <script type="text/javascript" src="templates/js/jquery-1.7.2.min.js"></script>
+    <script src="http://maps.googleapis.com/maps/api/js?sensor=false" type="text/javascript"></script>
+    <script type="text/javascript" src="templates/js/gmap3.min.js"></script>
+    <script type="text/javascript" src="templates/js/jquery-autocomplete.js"></script>
+    <link rel="stylesheet" type="text/css" href="templates/css/jquery-autocomplete.css"/>
+    <style>
+        h2 {
+        text-align:center;
+        font-size: 40px;
+        padding-top: 1%;
+        }
+        *{
+        font-family: verdana;
+        font-size: 15px;
+        }
+        body{
+        text-align:left;
+        padding-left: 5%;
+        padding-right: 5%;
+        }
+        .gmap3{
+        border: 2px dashed #C0C0C0;
+        width: 40%;
+        height: 80%;
+        float: right;
+        padding-right: 20%;
+        }
+        .ui-menu .ui-menu-item {
+        text-align: left;
+        font-weight: normal;
+        }
+        .ui-menu .ui-menu-item a.ui-state-hover{
+        background: #FFBFBF;
+        color: black;
+        font-weight:bold;
+        }
+        #movie {
+        padding-top: 1%;
+        }
+    </style>
+    <script type="text/javascript">
+         // note: autocomplete require on / off function so at least jQuery 1.7
+         
+         $(function(){
+         
+             $("#map").gmap3({
+                 map:{
+                     address: "San Francisco, CA, USA",
+                     options: {
+                         center: [37.7833, 122.4167],
+                         zoom: 12
+                     }
+                 }
+             });
+         
+             $("#search").autocomplete({
+                 source: function(request, response) {
+                    $.ajax({
+                        url: '{{ url_for("autocomplete") }}',
+                        data: {
+                            query: $("#search").val()
+                        },
+                        success: function(results) {
+                             var data = $(results["data"]);
+                             $("#search").autocomplete("display", data, false);
+         
+         }
+                    });
+                 },
+                 cb:{
+                     select: function(item) {
+                        var updated_info = false;
+                        $.ajax({
+                        url: '{{ url_for("get_movie") }}',
+                        data: {
+                            title: item
+                        },
+                        success: function(results) {
+                             var data = $(results["data"]);
+                             $("#map").gmap3({
+                                 clear: "marker",
+                             });
+                             var movie_item = jQuery.parseJSON(data[0]);
+                             update_movie_info(movie_item);
+                             $(data).each(function(i, item) {
+                                 var msg = jQuery.parseJSON(item);
+                                 geocode = msg["geocode"];
+                                 $("#map").gmap3({
+                                     marker: {
+                                         latLng: geocode.geometry.location
+                                     }
+                                  });
+                             });
+         }
+                      });
+                     }
+                 }
+             })
+             .focus();
+             var update_movie_info = function(movie_item) {
+                 $(".movie_info").remove();
+                 var title = movie_item["title"];
+                 $("#movie_name").after('<td class = "movie_info">' + title + "</td>");
+                 var year = movie_item["release_year"];
+                 $("#movie_year").after('<td class = "movie_info">' + year + "</td>");
+                 var actors = movie_item["actor_1"] + ", "+ movie_item["actor_2"];
+                 $("#movie_actor").after('<td class = "movie_info">' + actors + "</td>");
+                 var director = movie_item["director"];
+                 $("#movie_director").after('<td class = "movie_info">' + director + "</td>");
+                 var production_company = movie_item["production_company"];
+                 $("#movie_company").after('<td class = "movie_info">' + production_company + "</td>");
+             }
+         });
+      </script>
+    <h2>Find the movies you like in San Francisco</h2>
+<body>
+<p>Please enter a movie title you know(Case Sensitive):</p>
+<div id = "search_input">
+</div>
+<input type="text" id="search" size="60">
+<div class="row">
+<div id="movie"  class="col-sm-6">
+    <table  class="table table-striped table-bordered">
+        <tr>
+            <td id="movie_name">Movie Title</td>
+        </tr>
+        <tr>
+            <td id="movie_year">Release Year</td>
+        </tr>
+        <tr>
+            <td id="movie_actor">Actors</td>
+        </tr>
+        <tr>
+            <td id="movie_director">Director</td>
+        </tr>
+        <tr>
+            <td id="movie_company">Production Company</td>
+        </tr>
+    </table>
+</div>
+<div id="map" class="gmap3" class="col-sm-6"></div>
+</div>
+</body>
+</html>
