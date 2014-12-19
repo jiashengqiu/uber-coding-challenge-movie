@@ -2,8 +2,9 @@ Uber Coding Challenge: San Francisco Movie Locator
 
 - The project is hosted on heroku:
 
-[[Project live demo](http://uber-sf-movie.herokuapp.com)]
 
+[[Project live demo](http://uber-sf-movie.herokuapp.com)]
+=======
 
 Project Scope: This is a simple service that allows user to search the movies within San Francisco with the autocomplete search functions. The movie data is providedby DataSF.
 
